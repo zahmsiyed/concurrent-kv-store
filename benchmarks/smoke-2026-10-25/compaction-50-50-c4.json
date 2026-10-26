@@ -1,0 +1,16 @@
+{
+  "schemaVersion":1,
+  "timestamp":"2026-10-26T04:48:12.130610Z",
+  "mode":"closed-loop",
+  "durability":"force-each-write; process-crash guarantee",
+  "workload":{"url":"http://127.0.0.1:49709","seed":42,"concurrency":4,"operations":256,"warmup":64,"keys":64,"valueBytes":256,"writePercent":50,"timeoutMs":10000,"compact":true},
+  "environment":{"jdk":"21.0.8+9-LTS","os":"Mac OS X 26.5.2","arch":"aarch64","processors":10,"hardware":"Apple M4; 16 GiB RAM; macOS local filesystem; server and client on same host; storage model unspecified"},
+  "elapsedSeconds":0.469460,
+  "successfulOperations":256,
+  "errors":0,
+  "throughputOpsPerSecond":545.307,
+  "latencyMicros":{"count":256,"p50":7502.958,"p95":14870.958,"p99":16084.333},
+  "reads":{"count":137,"p50":4293.083,"p95":11873.125,"p99":12282.458},
+  "writes":{"count":119,"p50":9003.750,"p95":15930.875,"p99":16219.792},
+  "compaction":{"attempted":true,"errors":0,"durationMicros":12589.542}
+}

@@ -10,6 +10,12 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || args[0].equals("--help")) { usage(); return; }
         Map<String, String> options = options(args);
+        if (args[0].equals("load")) {
+            var result = new LoadGenerator(LoadGenerator.Config.parse(options)).run();
+            System.out.print(result.json());
+            if (result.errors() != 0) throw new java.io.IOException("load run had " + result.errors() + " errors");
+            return;
+        }
         if (args[0].equals("compact")) {
             rejectUnknown(options, "data");
             try (var store = new PersistentStore(Path.of(options.getOrDefault("data", "./data")))) { store.compact(); }
@@ -39,6 +45,8 @@ public final class Main {
         for (String key : options.keySet()) if (!java.util.Arrays.asList(known).contains(key)) throw new IllegalArgumentException("unknown option --" + key);
     }
     private static void usage() {
-        System.out.println("compact [--data ./data]\nserver [--host 127.0.0.1] [--port 8080] [--data ./data]");
+        System.out.println("load [--url http://127.0.0.1:8080] [--concurrency 16] [--operations 10000] [--warmup 1000]\n"
+                + "     [--keys 1000] [--value-bytes 256] [--writes 5] [--seed 42] [--timeout-ms 10000]\n"
+                + "     [--compact false] [--output result.json] [--hardware description]\ncompact [--data ./data]\nserver [--host 127.0.0.1] [--port 8080] [--data ./data]");
     }
 }

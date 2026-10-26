@@ -3,3 +3,5 @@
 /benchmarks/runs/
 *.log
 .DS_Store
+
+__pycache__/
