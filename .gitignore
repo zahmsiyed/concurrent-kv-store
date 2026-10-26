@@ -1,0 +1,5 @@
+/target/
+/data/
+/benchmarks/runs/
+*.log
+.DS_Store
