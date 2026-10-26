@@ -14,5 +14,9 @@ interface StorageIO {
     default FileChannel open(Path path) throws IOException {
         return FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
     }
+    default void replace(Path temporary, Path canonical) throws IOException {
+        java.nio.file.Files.move(temporary, canonical, java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    }
     default void checkpoint(String name) throws IOException {}
 }

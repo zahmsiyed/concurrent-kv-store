@@ -43,6 +43,7 @@ public final class PersistentStore implements KeyValueStore {
             }
             wal = io.open(path);
             replay();
+            Files.deleteIfExists(this.directory.resolve("store.wal.tmp"));
         } catch (IOException | RuntimeException e) {
             try { close(); } catch (IOException cleanup) { e.addSuppressed(cleanup); }
             throw e;
@@ -120,6 +121,40 @@ public final class PersistentStore implements KeyValueStore {
 
     private void apply(byte op, String key, byte[] value) {
         if (op == WalCodec.PUT) index.put(key, value); else index.remove(key);
+    }
+
+    public record CompactionResult(long beforeBytes, long afterBytes, long durationNanos) {}
+
+    /** Stop-the-world compaction: the old canonical log remains authoritative until atomic replacement. */
+    public CompactionResult compact() throws IOException {
+        lock.writeLock().lock();
+        try {
+            checkOpen();
+            long started = System.nanoTime();
+            try {
+                long before = wal.size();
+                Path temporary = directory.resolve("store.wal.tmp");
+                try (FileChannel output = FileChannel.open(temporary, StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+                    writeFully(output, ByteBuffer.wrap(WalCodec.HEADER));
+                    io.checkpoint("compact-header");
+                    for (var entry : new java.util.TreeMap<>(index).entrySet()) {
+                        writeFully(output, WalCodec.encode(WalCodec.PUT, entry.getKey(), entry.getValue()));
+                        io.checkpoint("compact-record");
+                    }
+                    io.force(output); io.checkpoint("compact-forced");
+                }
+                wal.close(); io.checkpoint("compact-before-replace");
+                io.replace(temporary, directory.resolve("store.wal"));
+                io.checkpoint("compact-after-replace");
+                wal = io.open(directory.resolve("store.wal")); wal.position(wal.size());
+                io.checkpoint("compact-reopened");
+                var result = new CompactionResult(before, wal.size(), System.nanoTime() - started);
+                System.err.printf("compaction beforeBytes=%d afterBytes=%d durationNanos=%d%n",
+                        result.beforeBytes(), result.afterBytes(), result.durationNanos());
+                return result;
+            } catch (IOException e) { failure = e; throw e; }
+        } finally { lock.writeLock().unlock(); }
     }
 
     @Override public void close() throws IOException {

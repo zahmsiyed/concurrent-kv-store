@@ -28,6 +28,10 @@ public final class HttpApi implements AutoCloseable {
                 if (!method.equals("GET")) { methodNotAllowed(x, "GET"); return; }
                 send(x, store.healthy() ? 200 : 503, store.healthy() ? "ready" : "storage unavailable"); return;
             }
+            if (path.equals("/admin/compact")) {
+                if (!method.equals("POST")) { methodNotAllowed(x, "POST"); return; }
+                store.compact(); send(x, 204, ""); return;
+            }
             if (!path.startsWith("/kv/")) { send(x, 404, "not found"); return; }
             String key = path.substring(4); WalCodec.validateKey(key);
             switch (method) {

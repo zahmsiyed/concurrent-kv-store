@@ -10,6 +10,11 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || args[0].equals("--help")) { usage(); return; }
         Map<String, String> options = options(args);
+        if (args[0].equals("compact")) {
+            rejectUnknown(options, "data");
+            try (var store = new PersistentStore(Path.of(options.getOrDefault("data", "./data")))) { store.compact(); }
+            return;
+        }
         if (!args[0].equals("server")) throw new IllegalArgumentException("unknown command: " + args[0]);
         rejectUnknown(options, "host", "port", "data");
         PersistentStore store = new PersistentStore(Path.of(options.getOrDefault("data", "./data")));
@@ -34,6 +39,6 @@ public final class Main {
         for (String key : options.keySet()) if (!java.util.Arrays.asList(known).contains(key)) throw new IllegalArgumentException("unknown option --" + key);
     }
     private static void usage() {
-        System.out.println("server [--host 127.0.0.1] [--port 8080] [--data ./data]");
+        System.out.println("compact [--data ./data]\nserver [--host 127.0.0.1] [--port 8080] [--data ./data]");
     }
 }

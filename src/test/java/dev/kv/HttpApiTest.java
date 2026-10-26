@@ -37,6 +37,9 @@ class HttpApiTest {
             assertEquals(405, request(p, "POST", "/kv/a", new byte[0]).statusCode());
             assertEquals(405, request(p, "PUT", "/health", new byte[0]).statusCode());
             assertEquals(404, request(p, "GET", "/unknown", new byte[0]).statusCode());
+            assertEquals(405, request(p, "GET", "/admin/compact", new byte[0]).statusCode());
+            assertEquals(204, request(p, "POST", "/admin/compact", new byte[0]).statusCode());
+            assertEquals(200, request(p, "GET", "/kv/empty", new byte[0]).statusCode());
         }
     }
     @Test void concurrentHttpWritesHaveRecoverableIndependentKeys() throws Exception {
